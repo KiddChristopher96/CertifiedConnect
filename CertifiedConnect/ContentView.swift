@@ -4,6 +4,7 @@ import FirebaseAuth
 
 struct ContentView: View {
     var currentUser: User
+    @EnvironmentObject var appState: AppState
     @State private var isInsuranceVerified: Bool?
     @State private var isLoading: Bool = true
 
@@ -15,17 +16,40 @@ struct ContentView: View {
                 if let isInsuranceVerified = isInsuranceVerified {
                     if isInsuranceVerified {
                         // Verified: Show the business dashboard
-                        BusinessDashboardView(businessName: currentUser.name, isInsuranceVerified: isInsuranceVerified)
+                        VStack {
+                            BusinessDashboardView(businessName: currentUser.name, isInsuranceVerified: isInsuranceVerified)
+                            Button(action: logOut) {
+                                Text("Logout")
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.red)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(10)
+                            }
+                            .padding()
+                        }
                     } else {
                         // Not Verified: Show verification pending screen
                         VerificationPendingView()
-                            .environmentObject(AppState())
+                            .environmentObject(appState)
                     }
                 } else {
                     // Error: No business profile found
-                    Text("No business profile found. Please complete your onboarding.")
-                        .multilineTextAlignment(.center)
+                    VStack {
+                        Text("No business profile found. Please complete your onboarding.")
+                            .multilineTextAlignment(.center)
+                            .padding()
+
+                        Button(action: logOut) {
+                            Text("Logout")
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.red)
+                                .foregroundColor(.white)
+                                .cornerRadius(10)
+                        }
                         .padding()
+                    }
                 }
             }
         }
@@ -62,5 +86,17 @@ struct ContentView: View {
                     isLoading = false
                 }
             }
+    }
+
+    func logOut() {
+        do {
+            try Auth.auth().signOut()
+            DispatchQueue.main.async {
+                appState.isLoggedIn = false
+                print("Successfully logged out. Returning to login screen.")
+            }
+        } catch {
+            print("Error signing out: \(error.localizedDescription)")
+        }
     }
 }
