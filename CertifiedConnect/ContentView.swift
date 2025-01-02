@@ -83,6 +83,16 @@ struct ContentView: View {
         }
     }
 
+    func logOut() {
+        do {
+            try Auth.auth().signOut()
+            appState.isLoggedIn = false
+            print("Successfully logged out. Returning to login screen.")
+        } catch {
+            print("Error signing out: \(error.localizedDescription)")
+        }
+    }
+
     func checkInsuranceVerification() {
         let db = Firestore.firestore()
         guard let userUID = Auth.auth().currentUser?.uid else {
