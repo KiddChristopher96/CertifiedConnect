@@ -7,7 +7,7 @@ struct AuthenticationView: View {
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var errorMessage: String?
-    var onLogin: () -> Void // Callback for handling login actions
+    var onLogin: () -> Void
 
     var body: some View {
         VStack(spacing: 20) {
@@ -29,7 +29,6 @@ struct AuthenticationView: View {
                     .font(.caption)
             }
 
-            // Login Button
             Button(action: login) {
                 Text("Login")
                     .frame(maxWidth: .infinity)
@@ -39,7 +38,6 @@ struct AuthenticationView: View {
                     .cornerRadius(8)
             }
 
-            // Sign-Up Button
             Button(action: signUp) {
                 Text("Sign Up")
                     .frame(maxWidth: .infinity)
@@ -53,12 +51,16 @@ struct AuthenticationView: View {
     }
 
     func login() {
+        print("Login button pressed.")
         Auth.auth().signIn(withEmail: email, password: password) { result, error in
             if let error = error {
+                print("Login error: \(error.localizedDescription)")
                 errorMessage = error.localizedDescription
                 return
             }
-            // Call onLogin after successful login
+
+            print("Login successful.")
+            appState.isLoggedIn = true
             onLogin()
         }
     }
@@ -66,31 +68,32 @@ struct AuthenticationView: View {
     func signUp() {
         Auth.auth().createUser(withEmail: email, password: password) { result, error in
             if let error = error {
+                print("Sign-up error: \(error.localizedDescription)")
                 errorMessage = error.localizedDescription
                 return
             }
 
             guard let userUID = result?.user.uid else {
-                errorMessage = "Unable to retrieve user UID "
+                errorMessage = "Unable to retrieve user UID"
                 return
             }
 
-            // Save new user to Firestore
             let db = Firestore.firestore()
             db.collection("users").document(userUID).setData([
-                "name": email, // Placeholder name
+                "name": email,
                 "email": email,
-                "role": "BusinessOwner" // Default role
+                "role": "BusinessOwner"
             ]) { error in
                 if let error = error {
+                    print("Error saving user to Firestore: \(error.localizedDescription)")
                     errorMessage = error.localizedDescription
                     return
                 }
-                // Call onLogin after successful sign-up
+
+                print("Sign-up successful.")
+                appState.isLoggedIn = true
                 onLogin()
             }
         }
     }
 }
-
-

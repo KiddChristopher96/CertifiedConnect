@@ -12,17 +12,16 @@ struct ContentView: View {
             if isLoading {
                 ProgressView("Checking your profile...")
             } else {
-                if let isInsuranceVerified = isInsuranceVerified {
+                if currentUser.role == "Admin" {
+                    AdminVerificationView()
+                } else if let isInsuranceVerified = isInsuranceVerified {
                     if isInsuranceVerified {
-                        // Verified: Show the business dashboard
                         BusinessDashboardView(businessName: currentUser.name, isInsuranceVerified: isInsuranceVerified)
                     } else {
-                        // Not Verified: Show verification pending screen
                         VerificationPendingView()
                             .environmentObject(AppState())
                     }
                 } else {
-                    // Error: No business profile found
                     Text("No business profile found. Please complete your onboarding.")
                         .multilineTextAlignment(.center)
                         .padding()
@@ -30,8 +29,11 @@ struct ContentView: View {
             }
         }
         .onAppear {
-            print("UI: onAppear triggered in ContentView")
-            checkInsuranceVerification()
+            if currentUser.role != "Admin" {
+                checkInsuranceVerification()
+            } else {
+                isLoading = false
+            }
         }
     }
 
@@ -54,7 +56,6 @@ struct ContentView: View {
                     if let document = snapshot?.documents.first {
                         let data = document.data()
                         self.isInsuranceVerified = data["insuranceVerified"] as? Bool
-                        print("Insurance verification status: \(self.isInsuranceVerified ?? false)")
                     } else {
                         print("No business profile found for user")
                         self.isInsuranceVerified = nil
