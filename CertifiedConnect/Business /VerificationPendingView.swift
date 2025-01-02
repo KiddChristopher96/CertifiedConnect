@@ -2,7 +2,7 @@ import SwiftUI
 import FirebaseAuth
 
 struct VerificationPendingView: View {
-    @EnvironmentObject var appState: AppState // Use shared app state for navigation
+    @EnvironmentObject var appState: AppState
 
     var body: some View {
         VStack(spacing: 20) {
@@ -17,17 +17,8 @@ struct VerificationPendingView: View {
 
             Spacer()
 
-            // Help Button
-            Button(action: {
-                // Optional: Add help or contact support action
-            }) {
-                Text("Need Help?")
-                    .foregroundColor(.blue)
-            }
-
-            // Return to Login Button
             Button(action: logOut) {
-                Text("Return to Login")
+                Text("Logout")
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.red)
@@ -42,11 +33,8 @@ struct VerificationPendingView: View {
     func logOut() {
         do {
             try Auth.auth().signOut()
-            DispatchQueue.main.async {
-                appState.isLoggedIn = false // Update app state to show the login screen
-                appState.objectWillChange.send() // Notify the environment of the change
-                print("Successfully logged out. Returning to login screen.")
-            }
+            appState.isLoggedIn = false
+            print("Successfully logged out. Returning to login screen.")
         } catch {
             print("Error signing out: \(error.localizedDescription)")
         }
