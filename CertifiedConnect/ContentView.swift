@@ -15,7 +15,6 @@ struct ContentView: View {
             } else {
                 if let isInsuranceVerified = isInsuranceVerified {
                     if isInsuranceVerified {
-                        // Verified: Show the business dashboard
                         VStack {
                             BusinessDashboardView(businessName: currentUser.name, isInsuranceVerified: isInsuranceVerified)
                             Button(action: logOut) {
@@ -29,17 +28,14 @@ struct ContentView: View {
                             .padding()
                         }
                     } else {
-                        // Not Verified: Show verification pending screen
                         VerificationPendingView()
                             .environmentObject(appState)
                     }
                 } else {
-                    // Error: No business profile found
                     VStack {
                         Text("No business profile found. Please complete your onboarding.")
                             .multilineTextAlignment(.center)
                             .padding()
-
                         Button(action: logOut) {
                             Text("Logout")
                                 .frame(maxWidth: .infinity)
@@ -54,8 +50,17 @@ struct ContentView: View {
             }
         }
         .onAppear {
-            print("UI: onAppear triggered in ContentView")
             checkInsuranceVerification()
+        }
+    }
+
+    func logOut() {
+        do {
+            try Auth.auth().signOut()
+            appState.isLoggedIn = false
+            print("Successfully logged out. Returning to login screen.")
+        } catch {
+            print("Error signing out: \(error.localizedDescription)")
         }
     }
 
@@ -86,17 +91,5 @@ struct ContentView: View {
                     isLoading = false
                 }
             }
-    }
-
-    func logOut() {
-        do {
-            try Auth.auth().signOut()
-            DispatchQueue.main.async {
-                appState.isLoggedIn = false
-                print("Successfully logged out. Returning to login screen.")
-            }
-        } catch {
-            print("Error signing out: \(error.localizedDescription)")
-        }
     }
 }
