@@ -32,10 +32,15 @@ struct VerificationPendingView: View {
     func logOut() {
         do {
             try Auth.auth().signOut()
+<<<<<<< HEAD
             DispatchQueue.main.async {
                 appState.isLoggedIn = false
                 print("Successfully logged out.")
             }
+=======
+            appState.isLoggedIn = false
+            print("Successfully logged out. Returning to login screen.")
+>>>>>>> main
         } catch {
             print("Error signing out: \(error.localizedDescription)")
         }
