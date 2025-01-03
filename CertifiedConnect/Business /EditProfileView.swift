@@ -2,13 +2,14 @@ import SwiftUI
 import FirebaseFirestore
 
 struct EditProfileView: View {
+    @Environment(\.presentationMode) var presentationMode // Used to dismiss the sheet
     @State var business: Business
+    @State private var certificationsText: String
     @State private var isSaving = false
-    @State private var certificationsText: String // New state variable for the certifications text field
 
     init(business: Business) {
         self.business = business
-        _certificationsText = State(initialValue: business.certifications.joined(separator: ", ")) // Initialize with certifications
+        _certificationsText = State(initialValue: business.certifications.joined(separator: ", "))
     }
 
     var body: some View {
@@ -40,7 +41,7 @@ struct EditProfileView: View {
             }
             .navigationTitle("Edit Profile")
             .navigationBarItems(trailing: Button("Close") {
-                // Close this sheet
+                presentationMode.wrappedValue.dismiss() // Dismiss the sheet
             })
         }
     }
@@ -48,11 +49,12 @@ struct EditProfileView: View {
     func saveProfile() {
         isSaving = true
 
-        // Update certifications from the text field
+        // Parse certifications from text field
         business.certifications = certificationsText
             .split(separator: ",")
             .map { $0.trimmingCharacters(in: .whitespaces) }
 
+        // Update Firestore
         let db = Firestore.firestore()
         db.collection("businesses").document(business.id).setData([
             "businessName": business.businessName,
@@ -61,12 +63,30 @@ struct EditProfileView: View {
             "phone": business.phone,
             "certifications": business.certifications
         ], merge: true) { error in
-            if let error = error {
-                print("Error saving profile: \(error.localizedDescription)")
-            } else {
-                print("Profile updated successfully")
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("Error saving profile: \(error.localizedDescription)")
+                } else {
+                    print("Profile updated successfully")
+                    presentationMode.wrappedValue.dismiss() // Dismiss the sheet after saving
+                }
+                isSaving = false
             }
-            isSaving = false
         }
+    }
+}
+
+struct EditProfileView_Previews: PreviewProvider {
+    static var previews: some View {
+        EditProfileView(business: Business(
+            id: "1",
+            businessName: "Mock Business",
+            ownerName: "Owner Name",
+            email: "email@example.com",
+            phone: "123-456-7890",
+            certifications: ["Certification 1", "Certification 2"],
+            insuranceVerified: true,
+            submittedBy: "userUID"
+        ))
     }
 }
